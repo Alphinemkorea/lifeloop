@@ -113,6 +113,87 @@ export function findUserById(id) {
   return { ...user, profile };
 }
 
+export function ensureUserExists(userData) {
+  if (!userData || !userData.id) return null;
+  let user = db.users.find(u => u.id === userData.id);
+  if (!user) {
+    user = {
+      id: userData.id,
+      email: userData.email || 'user@lifeloop.app',
+      password_hash: '',
+      admin_password_hash: '',
+      full_name: userData.full_name || 'LifeLoop Member',
+      role: userData.role || 'user',
+      created_at: new Date().toISOString()
+    };
+    db.users.push(user);
+  }
+
+  let profile = db.profiles.find(p => p.user_id === user.id);
+  if (!profile) {
+    profile = {
+      id: `p-${Date.now()}`,
+      user_id: user.id,
+      username: `@${(user.full_name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+      age: '',
+      instagram_handle: '',
+      avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.full_name || 'user')}`,
+      bio: 'Hey! I am using LifeLoop to stay close with friends.',
+      favorite_quote: 'Memories fade, shared loops stay forever.',
+      birthday: '',
+      location: ''
+    };
+    db.profiles.push(profile);
+  }
+
+  if (db.spaces.length > 0) {
+    const defaultSpace = db.spaces[0];
+    if (!db.memberships.some(m => m.space_id === defaultSpace.id && m.user_id === user.id)) {
+      db.memberships.push({
+        id: `mem-${Date.now()}`,
+        space_id: defaultSpace.id,
+        user_id: user.id,
+        role: 'member',
+        joined_at: new Date().toISOString()
+      });
+    }
+  }
+
+  saveDb();
+  return { ...user, profile };
+}
+
+export function ensureSpaceExists(spaceId, creatorUserId = null) {
+  if (!spaceId) return null;
+  let space = db.spaces.find(s => s.id === spaceId);
+  if (!space) {
+    space = {
+      id: spaceId,
+      name: 'Memory Space',
+      description: 'Shared private space for friends and memories.',
+      code: spaceId.replace(/^s-/, 'LOOP-'),
+      created_by: creatorUserId || 'u-1',
+      created_at: new Date().toISOString()
+    };
+    db.spaces.push(space);
+
+    if (creatorUserId) {
+      if (!db.memberships.some(m => m.space_id === spaceId && m.user_id === creatorUserId)) {
+        db.memberships.push({
+          id: `mem-${Date.now()}`,
+          space_id: spaceId,
+          user_id: creatorUserId,
+          role: 'owner',
+          joined_at: new Date().toISOString()
+        });
+      }
+    }
+
+    saveDb();
+  }
+  return space;
+}
+
 export function createUser(userData) {
   const newUser = {
     id: `u-${Date.now()}`,
@@ -217,7 +298,10 @@ export function getAllSpaces(userId, page = 1, perPage = 10) {
 }
 
 export function getSpaceById(spaceId, userId) {
-  const space = db.spaces.find(s => s.id === spaceId);
+  let space = db.spaces.find(s => s.id === spaceId);
+  if (!space && spaceId) {
+    space = ensureSpaceExists(spaceId, userId);
+  }
   if (!space) return null;
 
   const memberCount = db.memberships.filter(m => m.space_id === space.id).length;
@@ -420,6 +504,13 @@ function enrichMoment(m, currentUserId) {
 }
 
 export function createMoment(data) {
+  if (data.space_id) {
+    ensureSpaceExists(data.space_id, data.user_id);
+  }
+  if (data.user_id) {
+    ensureUserExists({ id: data.user_id });
+  }
+
   const momentId = `mom-${Date.now()}`;
   const newMoment = {
     id: momentId,

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { findUserById } from './db.js';
+import { findUserById, ensureUserExists } from './db.js';
 import { config } from './config.js';
 
 const JWT_SECRET = config.jwtSecret;
@@ -30,7 +30,12 @@ export function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'Invalid or expired token (401 Unauthorized).' });
     }
 
-    const user = findUserById(decoded.id);
+    let user = findUserById(decoded.id);
+    if (!user && decoded && decoded.id) {
+      // Auto-rehydrate user if serverless instance cold-started or reset
+      user = ensureUserExists(decoded);
+    }
+
     if (!user) {
       return res.status(401).json({ error: 'User no longer exists.' });
     }
