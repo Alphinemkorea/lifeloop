@@ -146,19 +146,6 @@ export function ensureUserExists(userData) {
     db.profiles.push(profile);
   }
 
-  if (db.spaces.length > 0) {
-    const defaultSpace = db.spaces[0];
-    if (!db.memberships.some(m => m.space_id === defaultSpace.id && m.user_id === user.id)) {
-      db.memberships.push({
-        id: `mem-${Date.now()}`,
-        space_id: defaultSpace.id,
-        user_id: user.id,
-        role: 'member',
-        joined_at: new Date().toISOString()
-      });
-    }
-  }
-
   saveDb();
   return { ...user, profile };
 }
@@ -171,7 +158,9 @@ export function ensureSpaceExists(spaceId, creatorUserId = null) {
       id: spaceId,
       name: 'Memory Space',
       description: 'Shared private space for friends and memories.',
-      code: spaceId.replace(/^s-/, 'LOOP-'),
+      icon: '🌿',
+      cover_url: 'https://images.unsplash.com/photo-1518173946687-a4c8a383392e?auto=format&fit=crop&w=1200&q=80',
+      invite_code: spaceId.replace(/^s-/, 'LOOP-'),
       created_by: creatorUserId || 'u-1',
       created_at: new Date().toISOString()
     };
@@ -278,18 +267,28 @@ export function updateProfile(userId, updates) {
 }
 
 // ----------------- SPACES & MEMBERSHIPS (Many:Many) -----------------
-export function getAllSpaces(userId, page = 1, perPage = 10) {
-  const enriched = db.spaces.map(space => {
+export function getAllSpaces(userId, page = 1, perPage = 10, joinedOnly = false) {
+  let spaces = db.spaces;
+
+  // Filter if joinedOnly is requested or when user specifies they only want their spaces
+  if (userId && joinedOnly) {
+    const userSpaceIds = db.memberships.filter(m => m.user_id === userId).map(m => m.space_id);
+    spaces = spaces.filter(s => userSpaceIds.includes(s.id) || s.created_by === userId);
+  }
+
+  const enriched = spaces.map(space => {
     const memberCount = db.memberships.filter(m => m.space_id === space.id).length;
     const momentsCount = db.moments.filter(m => m.space_id === space.id).length;
     const userMembership = userId ? db.memberships.find(m => m.space_id === space.id && m.user_id === userId) : null;
+    const isOwner = space.created_by === userId || (userMembership && userMembership.role === 'owner');
 
     return {
       ...space,
       member_count: memberCount,
       moments_count: momentsCount,
       is_member: !!userMembership,
-      user_role: userMembership ? userMembership.role : null,
+      is_owner: isOwner,
+      user_role: isOwner ? 'owner' : (userMembership ? userMembership.role : null),
       nickname_in_space: userMembership ? userMembership.nickname_in_space : null
     };
   });
@@ -307,14 +306,17 @@ export function getSpaceById(spaceId, userId) {
   const memberCount = db.memberships.filter(m => m.space_id === space.id).length;
   const momentsCount = db.moments.filter(m => m.space_id === space.id).length;
   const userMembership = userId ? db.memberships.find(m => m.space_id === space.id && m.user_id === userId) : null;
+  const isOwner = space.created_by === userId || (userMembership && userMembership.role === 'owner');
 
   const members = db.memberships
     .filter(m => m.space_id === space.id)
     .map(m => {
       const u = db.users.find(usr => usr.id === m.user_id);
       const p = db.profiles.find(prf => prf.user_id === m.user_id);
+      const isMemberOwner = m.role === 'owner' || space.created_by === m.user_id;
       return {
         ...m,
+        role: isMemberOwner ? 'owner' : 'member',
         user_name: u ? u.full_name : 'Unknown',
         user_email: u ? u.email : '',
         avatar_url: p ? p.avatar_url : ''
@@ -326,13 +328,13 @@ export function getSpaceById(spaceId, userId) {
     member_count: memberCount,
     moments_count: momentsCount,
     is_member: !!userMembership,
-    user_role: userMembership ? userMembership.role : null,
+    is_owner: isOwner,
+    user_role: isOwner ? 'owner' : (userMembership ? userMembership.role : null),
     members
   };
 }
 
 export function createSpace(data) {
-  // Generate a friendly shareable invite code (e.g. SQUAD2026 or LIFE-8X9A)
   const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
   const generatedCode = data.custom_code ? data.custom_code.toUpperCase().trim() : `LIFE-${randomSuffix}`;
 
@@ -361,7 +363,59 @@ export function createSpace(data) {
   db.memberships.push(membership);
 
   saveDb();
-  return { ...newSpace, member_count: 1, moments_count: 0, is_member: true, user_role: 'owner' };
+  return { ...newSpace, member_count: 1, moments_count: 0, is_member: true, is_owner: true, user_role: 'owner' };
+}
+
+// Edit space appearance (allowed for any member of the space)
+export function updateSpaceAppearance(spaceId, userId, updates) {
+  const space = db.spaces.find(s => s.id === spaceId);
+  if (!space) throw new Error('Space not found');
+
+  const membership = db.memberships.find(m => m.space_id === spaceId && m.user_id === userId);
+  if (!membership && space.created_by !== userId) {
+    throw new Error('You must be a member of this space to edit its appearance.');
+  }
+
+  if (updates.name !== undefined && updates.name.trim()) {
+    space.name = updates.name.trim();
+  }
+  if (updates.description !== undefined) {
+    space.description = updates.description.trim();
+  }
+  if (updates.icon !== undefined && updates.icon.trim()) {
+    space.icon = updates.icon.trim();
+  }
+  if (updates.cover_url !== undefined && updates.cover_url.trim()) {
+    space.cover_url = updates.cover_url.trim();
+  }
+
+  saveDb();
+  return getSpaceById(spaceId, userId);
+}
+
+// Remove member or change role (restricted to space Owner only!)
+export function removeSpaceMember(spaceId, ownerUserId, targetUserId) {
+  const space = db.spaces.find(s => s.id === spaceId);
+  if (!space) throw new Error('Space not found');
+
+  const isOwner = space.created_by === ownerUserId || 
+    db.memberships.some(m => m.space_id === spaceId && m.user_id === ownerUserId && m.role === 'owner');
+
+  if (!isOwner) {
+    throw new Error('Only the space owner can edit or remove members.');
+  }
+
+  if (targetUserId === space.created_by) {
+    throw new Error('Cannot remove the space creator/owner.');
+  }
+
+  const idx = db.memberships.findIndex(m => m.space_id === spaceId && m.user_id === targetUserId);
+  if (idx !== -1) {
+    db.memberships.splice(idx, 1);
+    saveDb();
+    return true;
+  }
+  return false;
 }
 
 export function joinSpaceByInviteCode(userId, inviteCode, nickname) {
@@ -402,7 +456,14 @@ export function getMoments(options) {
 
   if (options.space_id) {
     moments = moments.filter(m => m.space_id === options.space_id);
+  } else if (options.current_user_id) {
+    // Filter feed to spaces where the current user is a member OR posted by user
+    const userSpaceIds = db.memberships
+      .filter(m => m.user_id === options.current_user_id)
+      .map(m => m.space_id);
+    moments = moments.filter(m => userSpaceIds.includes(m.space_id) || m.user_id === options.current_user_id);
   }
+
   if (options.user_id) {
     moments = moments.filter(m => m.user_id === options.user_id);
   }
@@ -429,7 +490,7 @@ export function getMoments(options) {
   moments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   // Enrich with User info, Space info, Photos, Songs, Comments, Reactions
-  const enriched = moments.map(m => enrichMoment(m, options.user_id));
+  const enriched = moments.map(m => enrichMoment(m, options.user_id || options.current_user_id));
 
   return paginate(enriched, options.page, options.per_page);
 }

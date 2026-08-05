@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useFetch } from '../hooks/useFetch.js';
 import { copyToClipboard } from '../utils/api.js';
 import { MomentCard } from '../components/MomentCard.jsx';
+import { SpaceCard } from '../components/SpaceCard.jsx';
+import { EditSpaceModal } from '../components/EditSpaceModal.jsx';
 import { AIReflectionModal } from '../components/AIReflectionModal.jsx';
 import { MOODS, CATEGORIES } from '../types.js';
 import { PlusCircle, Users, Sparkles, Filter, Search, ChevronRight, Hash, TreePine, Copy, Check } from 'lucide-react';
@@ -15,6 +17,7 @@ export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOp
   const [page, setPage] = useState(1);
   const [copiedCodeId, setCopiedCodeId] = useState(null);
   const [isAIReflectionOpen, setIsAIReflectionOpen] = useState(false);
+  const [editingSpace, setEditingSpace] = useState(null);
 
   const handleCopyCode = async (e, space) => {
     e.preventDefault();
@@ -29,10 +32,12 @@ export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOp
   };
 
   // Fetch User's Spaces
-  const { data: spacesRes } = useFetch(user ? `/api/spaces?user_id=${user.id}&per_page=10` : '');
+  const { data: spacesRes, refetch: refetchSpaces } = useFetch(user ? `/api/spaces?user_id=${user.id}&joined_only=true&per_page=10` : '');
 
   // Fetch Moments Feed
   const momentsUrl = `/api/moments?page=${page}&per_page=10${
+    user ? `&current_user_id=${user.id}` : ''
+  }${
     selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ''
   }${selectedMood ? `&mood=${encodeURIComponent(selectedMood)}` : ''}`;
 
@@ -122,39 +127,11 @@ export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOp
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {spaces.slice(0, 4).map((space) => (
-            <Link
+            <SpaceCard
               key={space.id}
-              to={`/spaces/${space.id}`}
-              className="bg-white border border-slate-200 hover:border-blue-900 rounded-2xl p-4 shadow-2xs hover:shadow-sm transition group space-y-2 block"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-2xl">{space.icon}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-900 rounded-full border border-blue-100">
-                  {space.moments_count} moments
-                </span>
-              </div>
-              <div>
-                <h3 className="font-extrabold text-xs text-blue-950 group-hover:text-blue-900 truncate">
-                  {space.name}
-                </h3>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">{space.description || 'Private Space'}</p>
-              </div>
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                <button
-                  onClick={(e) => handleCopyCode(e, space)}
-                  className="flex items-center gap-1 font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 px-1.5 py-0.5 rounded border border-blue-200 transition"
-                  title="Click to copy invite code"
-                >
-                  <span>Code: {space.invite_code}</span>
-                  {copiedCodeId === space.id ? (
-                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                  ) : (
-                    <Copy className="w-3 h-3 text-slate-400 shrink-0" />
-                  )}
-                </button>
-                <span>{space.member_count} members</span>
-              </div>
-            </Link>
+              space={space}
+              onOpenEditModal={(s) => setEditingSpace(s)}
+            />
           ))}
         </div>
       </div>
@@ -251,6 +228,16 @@ export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOp
       <AIReflectionModal
         isOpen={isAIReflectionOpen}
         onClose={() => setIsAIReflectionOpen(false)}
+      />
+
+      <EditSpaceModal
+        isOpen={!!editingSpace}
+        onClose={() => setEditingSpace(null)}
+        space={editingSpace}
+        onSpaceUpdated={() => {
+          refetchSpaces();
+          setEditingSpace(null);
+        }}
       />
     </div>
   );

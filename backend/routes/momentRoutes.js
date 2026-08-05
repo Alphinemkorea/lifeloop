@@ -9,6 +9,7 @@ router.get('/', (req, res) => {
   const perPage = Number(req.query.per_page) || 10;
   const space_id = req.query.space_id;
   const user_id = req.query.user_id;
+  const current_user_id = req.query.current_user_id || req.query.user_id;
   const mood = req.query.mood;
   const category = req.query.category;
   const tag = req.query.tag;
@@ -17,6 +18,7 @@ router.get('/', (req, res) => {
   const result = getMoments({
     space_id,
     user_id,
+    current_user_id,
     mood,
     category,
     tag,

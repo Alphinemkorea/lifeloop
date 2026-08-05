@@ -3,6 +3,8 @@ import {
   getAllSpaces,
   getSpaceById,
   createSpace,
+  updateSpaceAppearance,
+  removeSpaceMember,
   joinSpaceByInviteCode,
   leaveSpace,
   getSpaceStats,
@@ -16,8 +18,9 @@ router.get('/', (req, res) => {
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.per_page) || 10;
   const userId = req.query.user_id || undefined;
+  const joinedOnly = req.query.joined_only === 'true' || req.query.joined_only === '1';
 
-  const result = getAllSpaces(userId, page, perPage);
+  const result = getAllSpaces(userId, page, perPage, joinedOnly);
   return res.json(result);
 });
 
@@ -50,6 +53,35 @@ router.post('/', authenticateToken, (req, res) => {
     return res.status(201).json({ message: 'Space created successfully', space });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to create space' });
+  }
+});
+
+// Update Space Appearance (All Members allowed)
+router.put('/:id', authenticateToken, (req, res) => {
+  try {
+    const { name, description, icon, cover_url } = req.body;
+    const updatedSpace = updateSpaceAppearance(req.params.id, req.user.id, {
+      name,
+      description,
+      icon,
+      cover_url
+    });
+    return res.json({ message: 'Space appearance updated successfully!', space: updatedSpace });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Failed to update space' });
+  }
+});
+
+// Remove Member from Space (Owner only)
+router.delete('/:id/members/:targetUserId', authenticateToken, (req, res) => {
+  try {
+    const success = removeSpaceMember(req.params.id, req.user.id, req.params.targetUserId);
+    if (success) {
+      return res.json({ message: 'Member removed from space.' });
+    }
+    return res.status(404).json({ error: 'Member not found in space.' });
+  } catch (err) {
+    return res.status(403).json({ error: err.message || 'Failed to remove member' });
   }
 });
 

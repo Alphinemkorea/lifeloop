@@ -70,8 +70,28 @@
       "location": ""
     }
   ],
-  "spaces": [],
-  "memberships": [],
+  "spaces": [
+    {
+      "id": "s-1785926910715",
+      "name": "codes",
+      "description": "vybez in tech",
+      "icon": "🎓",
+      "cover_url": "https://images.unsplash.com/photo-1518173946687-a4c8a383392e?auto=format&fit=crop&w=1200&q=80",
+      "invite_code": "LIFE-HOUVQ",
+      "created_by": "u-1785924978098",
+      "created_at": "2026-08-05T10:48:30.715Z"
+    }
+  ],
+  "memberships": [
+    {
+      "id": "m-1785926910716",
+      "user_id": "u-1785924978098",
+      "space_id": "s-1785926910715",
+      "role": "owner",
+      "nickname_in_space": "Nastyflakes78",
+      "joined_at": "2026-08-05T10:48:30.716Z"
+    }
+  ],
   "moments": [],
   "photos": [],
   "songs": [],
