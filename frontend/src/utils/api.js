@@ -18,7 +18,7 @@ export async function parseApiResponse(res) {
 
   const data = await res.json();
   if (!res.ok) {
-    if (res.status === 401) {
+    if (res.status === 401 && res.url && !res.url.includes('/api/auth/login') && !res.url.includes('/api/auth/register') && !res.url.includes('/api/auth/verify-admin-password')) {
       window.dispatchEvent(new CustomEvent('lifeloop:unauthorized'));
     }
     throw new Error(data.error || data.message || `Request failed with status ${res.status}`);

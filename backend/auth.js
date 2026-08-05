@@ -30,14 +30,21 @@ export function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'Invalid or expired token (401 Unauthorized).' });
     }
 
-    let user = findUserById(decoded.id);
-    if (!user && decoded && decoded.id) {
+    const userId = decoded ? (decoded.id || decoded.user_id || decoded.userId || decoded.sub) : null;
+    let user = userId ? findUserById(userId) : null;
+
+    if (!user && decoded) {
       // Auto-rehydrate user if serverless instance cold-started or reset
-      user = ensureUserExists(decoded);
+      user = ensureUserExists({
+        id: userId || `u-${Date.now()}`,
+        email: decoded.email || 'user@lifeloop.app',
+        full_name: decoded.full_name || decoded.name || 'LifeLoop Member',
+        role: decoded.role || 'user'
+      });
     }
 
     if (!user) {
-      return res.status(401).json({ error: 'User no longer exists.' });
+      return res.status(401).json({ error: 'User session expired. Please log in again.' });
     }
 
     req.user = {
