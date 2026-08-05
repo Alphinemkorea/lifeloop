@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+@layer utilities {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+  }
+}
+
+:root {
+  /* Default Fallback Theme: Blank & Hot Pink */
+  --bg-app: #09090b;
+  --bg-card: #18181b;
+  --border-color: #27272a;
+  --text-main: #f8fafc;
+  --text-muted: #a1a1aa;
+  --accent-bg: #ff1493;
+  --accent-hover: #e00078;
+  --accent-text: #ffffff;
+}
+
+[data-theme="black-hotpink"] {
+  --bg-app: #09090b;
+  --bg-card: #18181b;
+  --border-color: #27272a;
+  --text-main: #f8fafc;
+  --text-muted: #a1a1aa;
+  --accent-bg: #ff1493;
+  --accent-hover: #e00078;
+  --accent-text: #ffffff;
+}
+
+[data-theme="white-black"] {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #09090b;
+  --text-muted: #64748b;
+  --accent-bg: #000000;
+  --accent-hover: #27272a;
+  --accent-text: #ffffff;
+}
+
+[data-theme="darkblue-lightblue"] {
+  --bg-app: #0b132b;
+  --bg-card: #1c2541;
+  --border-color: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-bg: #38bdf8;
+  --accent-hover: #0284c7;
+  --accent-text: #ffffff;
+}
+
+[data-theme="black-grey"] {
+  --bg-app: #121212;
+  --bg-card: #1e1e1e;
+  --border-color: #2d2d2d;
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --accent-bg: #71717a;
+  --accent-hover: #52525b;
+  --accent-text: #ffffff;
+}
+
+[data-theme="pink-purple"] {
+  --bg-app: #1e1b4b;
+  --bg-card: #2e1065;
+  --border-color: #4c1d95;
+  --text-main: #faf5ff;
+  --text-muted: #c084fc;
+  --accent-bg: #ec4899;
+  --accent-hover: #db2777;
+  --accent-text: #ffffff;
+}
+
+[data-theme="emerald-mint"] {
+  --bg-app: #022c22;
+  --bg-card: #064e3b;
+  --border-color: #047857;
+  --text-main: #ecfdf5;
+  --text-muted: #6ee7b7;
+  --accent-bg: #34d399;
+  --accent-hover: #10b981;
+  --accent-text: #022c22;
+}
+
+[data-theme="sunset-amber"] {
+  --bg-app: #1c1917;
+  --bg-card: #292524;
+  --border-color: #44403c;
+  --text-main: #fafaf9;
+  --text-muted: #d6d3d1;
+  --accent-bg: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-text: #1c1917;
+}
+
+[data-theme="springgreen-deeponyx"] {
+  --bg-app: #0a0f0d;
+  --bg-card: #141c18;
+  --border-color: #24332b;
+  --text-main: #f0fdf4;
+  --text-muted: #86efac;
+  --accent-bg: #22c55e;
+  --accent-hover: #16a34a;
+  --accent-text: #052e16;
+}
+
+[data-theme="darkazure-softblue"] {
+  --bg-app: #031325;
+  --bg-card: #0a2239;
+  --border-color: #17385c;
+  --text-main: #f0f9ff;
+  --text-muted: #93c5fd;
+  --accent-bg: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-text: #ffffff;
+}
+
+[data-theme="royalpurple-darkplum"] {
+  --bg-app: #1a0921;
+  --bg-card: #2a1035;
+  --border-color: #421952;
+  --text-main: #fbf4ff;
+  --text-muted: #d8b4fe;
+  --accent-bg: #a855f7;
+  --accent-hover: #9333ea;
+  --accent-text: #ffffff;
+}
+
+[data-theme="abyss-frost"] {
+  --bg-app: #050b14;
+  --bg-card: #0d1726;
+  --border-color: #1c2d42;
+  --text-main: #f0fdfa;
+  --text-muted: #99f6e4;
+  --accent-bg: #2dd4bf;
+  --accent-hover: #14b8a6;
+  --accent-text: #042f2e;
+}
+
+[data-theme="white-darkblue"] {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --border-color: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --accent-bg: #1e3a8a;
+  --accent-hover: #1e40af;
+  --accent-text: #ffffff;
+}
+
+[data-theme="obsidian-lime"] {
+  --bg-app: #181818;
+  --bg-card: #222222;
+  --border-color: #383838;
+  --text-main: #f5f5f5;
+  --text-muted: #a3a3a3;
+  --accent-bg: #89E900;
+  --accent-hover: #75c700;
+  --accent-text: #121212;
+}
+
+[data-theme="ghost-persian"] {
+  --bg-app: #f8f9fa;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1c152d;
+  --text-muted: #50456c;
+  --accent-bg: #32127a;
+  --accent-hover: #260d60;
+  --accent-text: #ffffff;
+}
+
+html, body {
+  background-color: var(--bg-app) !important;
+  color: var(--text-main) !important;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Dynamic Global Theme Mapping */
+[data-theme] {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+}
+
+[data-theme] body,
+[data-theme] #root {
+  background-color: var(--bg-app) !important;
+  color: var(--text-main) !important;
+  min-height: 100vh;
+}
+
+/* Card & Box Containers */
+[data-theme] .bg-white,
+[data-theme] header,
+[data-theme] nav {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+/* Page background & Slate boxes */
+[data-theme] .bg-slate-50,
+[data-theme] .bg-slate-100,
+[data-theme] .bg-slate-50\/50,
+[data-theme] .bg-slate-100\/50,
+[data-theme] input,
+[data-theme] textarea,
+[data-theme] select {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme] input::placeholder,
+[data-theme] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Borders */
+[data-theme] .border-slate-200,
+[data-theme] .border-slate-100,
+[data-theme] .border-slate-300,
+[data-theme] .divide-slate-100 > * + * {
+  border-color: var(--border-color) !important;
+}
+
+/* Typography Overrides */
+[data-theme] .text-slate-900,
+[data-theme] .text-slate-800,
+[data-theme] .text-slate-700,
+[data-theme] .text-blue-950 {
+  color: var(--text-main) !important;
+}
+
+[data-theme] .text-slate-600,
+[data-theme] .text-slate-500,
+[data-theme] .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+/* Primary Accents & Buttons */
+[data-theme] .bg-blue-900 {
+  background-color: var(--accent-bg) !important;
+  color: var(--accent-text) !important;
+}
+
+[data-theme] .hover\:bg-blue-800:hover,
+[data-theme] .hover\:bg-blue-900\/90:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+[data-theme] .text-blue-900 {
+  color: var(--accent-bg) !important;
+}
+
+[data-theme] .border-blue-900 {
+  border-color: var(--accent-bg) !important;
+}
+
+[data-theme] .focus\:border-blue-900:focus {
+  border-color: var(--accent-bg) !important;
+}
+
+/* Subtle accent containers */
+[data-theme] .bg-blue-50,
+[data-theme] .bg-blue-100 {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme] .text-blue-600,
+[data-theme] .text-blue-700 {
+  color: var(--accent-bg) !important;
+}
+

@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "id": "u-1",
+      "email": "alex@lifeloop.app",
+      "password_hash": "$2b$10$TK8RAfROy3QHmbsx2YGKdeaRBa086.q3MwKnH6orS1gfzkIGagami",
+      "full_name": "Alex Johnson",
+      "role": "user",
+      "created_at": "2026-06-01T10:00:00Z"
+    },
+    {
+      "id": "u-admin",
+      "email": "admin@lifeloop.app",
+      "password_hash": "$2b$10$TK8RAfROy3QHmbsx2YGKdeaRBa086.q3MwKnH6orS1gfzkIGagami",
+      "full_name": "System Admin",
+      "role": "admin",
+      "created_at": "2026-05-01T08:00:00Z"
+    },
+    {
+      "id": "u-1785884227087",
+      "email": "alphinemkorea3@gmail.com",
+      "password_hash": "$2b$10$TK8RAfROy3QHmbsx2YGKdeaRBa086.q3MwKnH6orS1gfzkIGagami",
+      "admin_password_hash": "$2b$10$TK8RAfROy3QHmbsx2YGKdeaRBa086.q3MwKnH6orS1gfzkIGagami",
+      "full_name": "sizer2308",
+      "role": "user",
+      "created_at": "2026-08-04T22:57:07.087Z"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "p-1",
+      "user_id": "u-1",
+      "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Alex%20Johnson",
+      "bio": "Welcome to LifeLoop!",
+      "favorite_quote": "Connect and share weekly moments.",
+      "birthday": "",
+      "location": ""
+    },
+    {
+      "id": "p-1785884227087",
+      "user_id": "u-1785884227087",
+      "username": "@mkorea",
+      "age": "20",
+      "instagram_handle": "",
+      "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=sizer2308",
+      "bio": "Hey! I am using LifeLoop to stay close with friends.",
+      "favorite_quote": "Memories fade, shared loops stay forever.",
+      "birthday": "",
+      "location": ""
+    }
+  ],
+  "spaces": [],
+  "memberships": [],
+  "moments": [],
+  "photos": [],
+  "songs": [],
+  "comments": [],
+  "reactions": [],
+  "weeklySummaries": []
+}
