@@ -645,7 +645,10 @@ export function toggleReaction(momentId, userId, type) {
 
 // ----------------- DEEP QUERIES & AGGREGATIONS -----------------
 export function getSpaceStats(spaceId) {
-  const space = db.spaces.find(s => s.id === spaceId);
+  let space = db.spaces.find(s => s.id === spaceId);
+  if (!space && spaceId) {
+    space = ensureSpaceExists(spaceId);
+  }
   if (!space) return null;
 
   const moments = db.moments.filter(m => m.space_id === spaceId);
@@ -732,7 +735,10 @@ export function getSpaceStats(spaceId) {
 
 // ----------------- WEEKLY TREE VISUAL GENERATOR -----------------
 export function getWeeklyTree(spaceId) {
-  const space = db.spaces.find(s => s.id === spaceId);
+  let space = db.spaces.find(s => s.id === spaceId);
+  if (!space && spaceId) {
+    space = ensureSpaceExists(spaceId);
+  }
   if (!space) return null;
 
   const moments = db.moments.filter(m => m.space_id === spaceId);
