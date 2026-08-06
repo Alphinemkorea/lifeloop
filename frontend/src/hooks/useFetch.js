@@ -36,6 +36,18 @@ export const useFetch = (url) => {
 
   useEffect(() => {
     fetchData();
+
+    const handleDataRefresh = () => {
+      fetchData();
+    };
+
+    window.addEventListener('moment_created', handleDataRefresh);
+    window.addEventListener('space_updated', handleDataRefresh);
+
+    return () => {
+      window.removeEventListener('moment_created', handleDataRefresh);
+      window.removeEventListener('space_updated', handleDataRefresh);
+    };
   }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };

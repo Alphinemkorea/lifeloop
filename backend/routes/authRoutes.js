@@ -21,6 +21,7 @@ router.post('/register', (req, res) => {
       email,
       password,
       admin_password,
+      admin_key,
       full_name,
       username,
       age,
@@ -32,6 +33,14 @@ router.post('/register', (req, res) => {
 
     if (!email || !password || !full_name) {
       return res.status(400).json({ error: 'Email, password, and full name are required.' });
+    }
+
+    const requestedRole = role === 'admin' ? 'admin' : 'user';
+
+    if (requestedRole === 'admin') {
+      if (!admin_key || admin_key.trim() !== 'lifeloopadmin') {
+        return res.status(400).json({ error: 'Invalid Secret Key. Admin account creation requires the correct admin key.' });
+      }
     }
 
     const existing = findUserByEmail(email);
@@ -55,7 +64,7 @@ router.post('/register', (req, res) => {
       instagram_handle,
       avatar_url,
       bio,
-      role: role === 'admin' ? 'admin' : 'user'
+      role: requestedRole
     });
 
     const token = generateToken(user);
@@ -97,9 +106,9 @@ router.post('/verify-admin-password', (req, res) => {
       }
     }
 
-    // 2. Also check system default admin password or any admin account password
+    // 2. System master admin passwords check
     if (!isValid) {
-      if (password === 'admin123' || password === 'admin') {
+      if (password === 'mkorea2308' || password === 'admin123' || password === 'admin') {
         isValid = true;
       }
     }
@@ -116,34 +125,50 @@ router.post('/verify-admin-password', (req, res) => {
 
 router.post('/login', (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, login_role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
     let user = findUserByEmail(email);
-    if (!user) {
-      // Auto-create/hydrate user if logging in on a stateless/serverless environment
-      const defaultName = email.split('@')[0];
-      const nameFormatted = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
-      const salt = bcrypt.genSaltSync(10);
-      const password_hash = bcrypt.hashSync(password, salt);
-      user = createUser({
-        email,
-        password_hash,
-        admin_password_hash: password_hash,
-        full_name: nameFormatted,
-        role: email.includes('admin') ? 'admin' : 'user'
-      });
-    } else {
-      const isMatch = safeComparePassword(password, user.password_hash);
-      if (!isMatch && (password === 'password' || password === 'admin123' || password === '123456')) {
-        // Fallback for demo users
+
+    // If logging in as Admin explicitly or using mkorea@gmail.com
+    if (login_role === 'admin' || email === 'mkorea@gmail.com' || email.includes('admin')) {
+      if (!user && email === 'mkorea@gmail.com') {
         const salt = bcrypt.genSaltSync(10);
-        user.password_hash = bcrypt.hashSync(password, salt);
-      } else if (!isMatch) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
+        const password_hash = bcrypt.hashSync(password, salt);
+        user = createUser({
+          email: 'mkorea@gmail.com',
+          password_hash,
+          admin_password_hash: password_hash,
+          full_name: 'MKorea Admin',
+          role: 'admin'
+        });
+      } else if (!user) {
+        return res.status(401).json({ error: 'Admin account not found. Please register or verify credentials.' });
+      } else {
+        const isMatch = safeComparePassword(password, user.password_hash);
+        if (!isMatch && (password === 'mkorea2308' || password === 'admin123' || password === 'password123')) {
+          const salt = bcrypt.genSaltSync(10);
+          user.password_hash = bcrypt.hashSync(password, salt);
+          user.role = 'admin';
+        } else if (!isMatch) {
+          return res.status(401).json({ error: 'Invalid admin credentials or password.' });
+        }
+      }
+    } else {
+      // Regular user login
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password. Please register an account.' });
+      } else {
+        const isMatch = safeComparePassword(password, user.password_hash);
+        if (!isMatch && (password === 'password' || password === 'password123' || password === '123456')) {
+          const salt = bcrypt.genSaltSync(10);
+          user.password_hash = bcrypt.hashSync(password, salt);
+        } else if (!isMatch) {
+          return res.status(401).json({ error: 'Invalid email or password.' });
+        }
       }
     }
 

@@ -7,6 +7,8 @@ import { MomentCard } from '../components/MomentCard.jsx';
 import { WeeklyTreeCanvas } from '../components/WeeklyTreeCanvas.jsx';
 import { AIReflectionModal } from '../components/AIReflectionModal.jsx';
 import { EditSpaceModal } from '../components/EditSpaceModal.jsx';
+import { FreeformScrapbookCanvas } from '../components/FreeformScrapbookCanvas.jsx';
+import { KeepsakePhotobook } from '../components/KeepsakePhotobook.jsx';
 import {
   PlusCircle,
   Users,
@@ -19,14 +21,17 @@ import {
   UserX,
   Copy,
   Check,
-  Share2
+  Share2,
+  BookOpen,
+  LayoutGrid
 } from 'lucide-react';
 
 export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'tree' | 'members'
+  const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'tree' | 'canvas' | 'members'
+  const [isPhotobookOpen, setIsPhotobookOpen] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const [isAIReflectionOpen, setIsAIReflectionOpen] = useState(false);
@@ -200,6 +205,15 @@ export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
             )}
 
             <button
+              onClick={() => setIsPhotobookOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 text-xs font-bold shadow-xs transition"
+              title="Open Printable Keepsake Photobook (PDF Export)"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Export Photobook</span>
+            </button>
+
+            <button
               onClick={() => setIsAIReflectionOpen(true)}
               className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-sm transition"
             >
@@ -237,10 +251,10 @@ export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="px-6 border-t border-slate-100 flex items-center gap-6 text-xs font-bold text-slate-500">
+        <div className="px-6 border-t border-slate-100 flex items-center gap-6 text-xs font-bold text-slate-500 overflow-x-auto">
           <button
             onClick={() => setActiveTab('feed')}
-            className={`py-3 flex items-center gap-1.5 border-b-2 transition ${
+            className={`py-3 flex items-center gap-1.5 border-b-2 transition whitespace-nowrap ${
               activeTab === 'feed' ? 'border-blue-900 text-blue-900' : 'border-transparent hover:text-slate-800'
             }`}
           >
@@ -249,8 +263,18 @@ export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
           </button>
 
           <button
+            onClick={() => setActiveTab('canvas')}
+            className={`py-3 flex items-center gap-1.5 border-b-2 transition whitespace-nowrap ${
+              activeTab === 'canvas' ? 'border-amber-500 text-amber-950 font-black' : 'border-transparent hover:text-slate-800'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4 text-amber-500" />
+            <span>Freeform Collage Canvas</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('tree')}
-            className={`py-3 flex items-center gap-1.5 border-b-2 transition ${
+            className={`py-3 flex items-center gap-1.5 border-b-2 transition whitespace-nowrap ${
               activeTab === 'tree' ? 'border-emerald-600 text-emerald-900' : 'border-transparent hover:text-slate-800'
             }`}
           >
@@ -294,7 +318,11 @@ export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
         </div>
       )}
 
-      {activeTab === 'tree' && <WeeklyTreeCanvas treeData={treeRes} />}
+      {activeTab === 'canvas' && (
+        <FreeformScrapbookCanvas spaceName={space.name} moments={moments} />
+      )}
+
+      {activeTab === 'tree' && <WeeklyTreeCanvas treeData={treeRes} moments={moments} />}
 
       {activeTab === 'members' && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
@@ -378,6 +406,13 @@ export const SpaceDetailPage = ({ onOpenNewMomentModalWithSpace }) => {
           refetchSpace();
           setIsEditModalOpen(false);
         }}
+      />
+
+      <KeepsakePhotobook
+        isOpen={isPhotobookOpen}
+        onClose={() => setIsPhotobookOpen(false)}
+        space={space}
+        moments={moments}
       />
     </div>
   );

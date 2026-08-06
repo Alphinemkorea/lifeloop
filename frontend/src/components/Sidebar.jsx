@@ -1,8 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import { Home, Users, Sparkles, TreePine, BarChart3, User, Shield, BookOpen } from 'lucide-react';
 
 export const Sidebar = () => {
+  const { user } = useAuth();
+
   const navItems = [
     { label: 'Feed', path: '/', icon: Home },
     { label: 'Spaces', path: '/spaces', icon: Users },
@@ -10,14 +13,17 @@ export const Sidebar = () => {
     { label: 'Weekly Tree', path: '/weekly-tree', icon: TreePine },
     { label: 'Scrapbook', path: '/scrapbook', icon: BookOpen },
     { label: 'Analytics', path: '/stats', icon: BarChart3 },
-    { label: 'My Profile', path: '/profile', icon: User },
-    { label: 'Admin', path: '/admin', icon: Shield }
+    { label: 'My Profile', path: '/profile', icon: User }
   ];
+
+  if (user && user.role === 'admin') {
+    navItems.push({ label: 'Admin', path: '/admin', icon: Shield });
+  }
 
   return (
     <>
       {/* Desktop Sidebar (md and up) */}
-      <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-slate-200 bg-white sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto self-start p-4 space-y-6">
+      <aside className="hidden md:flex flex-col w-56 shrink-0 glass-panel border-r sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto self-start p-4 space-y-6">
         <div className="space-y-1">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3">
             Navigation
@@ -34,7 +40,7 @@ export const Sidebar = () => {
                     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
                       isActive
                         ? 'bg-blue-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        : 'text-slate-600 hover:bg-slate-100/40 hover:text-slate-900'
                     }`
                   }
                 >
@@ -46,9 +52,9 @@ export const Sidebar = () => {
           </nav>
         </div>
 
-        <div className="mt-auto p-3 bg-blue-50/50 border border-blue-100 rounded-2xl text-slate-700 text-xs space-y-2">
+        <div className="mt-auto p-3 glass-card rounded-2xl text-slate-700 text-xs space-y-2">
           <div className="flex items-center gap-1.5 font-bold text-blue-950 text-[11px]">
-            <TreePine className="w-4 h-4 text-emerald-600 shrink-0" />
+            <TreePine className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>LifeLoop Tree</span>
           </div>
           <p className="text-[11px] text-slate-500 leading-normal">
@@ -58,7 +64,7 @@ export const Sidebar = () => {
       </aside>
 
       {/* Mobile Bottom Navbar (Phone / Small screen) - Icons Only */}
-      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 py-2 justify-around items-center shadow-lg shadow-slate-900/10">
+      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 glass-panel border-t px-1 py-2 justify-around items-center shadow-lg">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

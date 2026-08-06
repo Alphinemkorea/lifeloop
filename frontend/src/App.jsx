@@ -7,6 +7,7 @@ import { useFetch } from './hooks/useFetch.js';
 
 import { Navbar } from './components/Navbar.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
+import { AmbientBackground } from './components/AmbientBackground.jsx';
 import { ProfileSetupModal } from './components/ProfileSetupModal.jsx';
 import { MomentModal } from './components/MomentModal.jsx';
 import { CreateSpaceModal } from './components/CreateSpaceModal.jsx';
@@ -43,6 +44,15 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 const MainLayout = () => {
   const { user } = useAuth();
 
@@ -64,7 +74,10 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col selection:bg-blue-900 selection:text-white">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col selection:bg-blue-900 selection:text-white relative overflow-x-hidden">
+      {/* Ambient Animated Background */}
+      <AmbientBackground />
+
       {/* Top Navbar */}
       <Navbar onOpenNewMoment={() => setIsMomentModalOpen(true)} />
 
@@ -107,7 +120,14 @@ const MainLayout = () => {
             <Route path="/scrapbook" element={<ScrapbookPage />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

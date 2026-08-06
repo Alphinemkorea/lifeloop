@@ -29,7 +29,7 @@ export const SpaceCard = ({ space, onOpenEditModal }) => {
   const isOwner = space.is_owner || space.user_role === 'owner';
 
   return (
-    <div className="bg-white border border-slate-200 hover:border-blue-900 rounded-3xl overflow-hidden shadow-2xs hover:shadow-md transition group flex flex-col justify-between">
+    <div className="glass-card hover:border-blue-900 rounded-3xl overflow-hidden transition group flex flex-col justify-between">
       {/* Top Banner Cover Photo */}
       <div className="h-28 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 relative overflow-hidden">
         {space.cover_url && (

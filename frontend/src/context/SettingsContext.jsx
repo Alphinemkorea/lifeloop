@@ -87,17 +87,36 @@ export const THEMES = [
   }
 ];
 
+export const BG_STYLES = [
+  { id: 'aurora', name: 'Aurora Glow', description: 'Fluid animated ambient light waves with soft glowing hues' },
+  { id: 'particles', name: 'Interactive Star Particles', description: 'Twinkling particles canvas that reacts softly to mouse movements' },
+  { id: 'grid', name: 'Glass Grid & Spotlight', description: 'Futuristic geometric grid with subtle ambient mouse spotlight' },
+  { id: 'orbs', name: 'Floating Glass Orbs', description: 'Floating soft color spheres shifting gently across the viewport' },
+  { id: 'nebula', name: 'Cosmic Nebula', description: 'Deep glowing space nebula clouds with floating cosmic stardust' },
+  { id: 'sunset', name: 'Sunset Mesh Waves', description: 'Warm mahogany and golden hour ambient gradient waves' },
+  { id: 'prism', name: 'Crystal Prism Light', description: 'Geometric light-refracting prism beams that shift with cursor motion' },
+  { id: 'clean', name: 'Clean Solid Canvas', description: 'Minimalist clean background without ambient particle effects' }
+];
+
 export const SettingsContext = createContext(null);
 
 export const SettingsProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
     return localStorage.getItem('app_theme') || 'black-hotpink';
   });
+  const [bgStyle, setBgStyleState] = useState(() => {
+    return localStorage.getItem('app_bg_style') || 'aurora';
+  });
   const [isAdminVerified, setIsAdminVerified] = useState(() => sessionStorage.getItem('admin_verified') === 'true');
 
   const setTheme = (newTheme) => {
     setThemeState(newTheme);
     localStorage.setItem('app_theme', newTheme);
+  };
+
+  const setBgStyle = (newBgStyle) => {
+    setBgStyleState(newBgStyle);
+    localStorage.setItem('app_bg_style', newBgStyle);
   };
 
   useEffect(() => {
@@ -114,7 +133,7 @@ export const SettingsProvider = ({ children }) => {
   };
 
   return (
-    <SettingsContext.Provider value={{ theme, setTheme, THEMES, isAdminVerified, verifyAdmin }}>
+    <SettingsContext.Provider value={{ theme, setTheme, THEMES, bgStyle, setBgStyle, BG_STYLES, isAdminVerified, verifyAdmin }}>
       {children}
     </SettingsContext.Provider>
   );

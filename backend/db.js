@@ -18,6 +18,16 @@ const DATA_FILE = IS_VERCEL
   ? path.join('/tmp', 'data.json')
   : path.join(process.cwd(), 'backend', 'data.json');
 
+const defaultSiteSettings = {
+  announcement_enabled: true,
+  announcement_text: '📢 Welcome to LifeLoop! Join spaces, share weekly moments, and grow memory trees with your friends.',
+  announcement_type: 'info',
+  ai_reflection_enabled: true,
+  comments_enabled: true,
+  public_spaces_enabled: true,
+  site_tagline: 'Private Memory Spaces & Scrapbooks'
+};
+
 let db = {
   users: [...initialUsers],
   profiles: [...initialProfiles],
@@ -28,7 +38,8 @@ let db = {
   songs: [...initialSongs],
   comments: [...initialComments],
   reactions: [...initialReactions],
-  weeklySummaries: [...initialWeeklySummaries]
+  weeklySummaries: [...initialWeeklySummaries],
+  siteSettings: { ...defaultSiteSettings }
 };
 
 // Try loading persisted data if available
@@ -76,10 +87,107 @@ export function resetDatabaseToSeed() {
     songs: JSON.parse(JSON.stringify(initialSongs)),
     comments: JSON.parse(JSON.stringify(initialComments)),
     reactions: JSON.parse(JSON.stringify(initialReactions)),
-    weeklySummaries: JSON.parse(JSON.stringify(initialWeeklySummaries))
+    weeklySummaries: JSON.parse(JSON.stringify(initialWeeklySummaries)),
+    siteSettings: { ...defaultSiteSettings }
   };
   saveDb();
 }
+
+export function getSiteSettings() {
+  if (!db.siteSettings) {
+    db.siteSettings = { ...defaultSiteSettings };
+    saveDb();
+  }
+  return db.siteSettings;
+}
+
+export function updateSiteSettings(newSettings) {
+  if (!db.siteSettings) {
+    db.siteSettings = { ...defaultSiteSettings };
+  }
+  db.siteSettings = {
+    ...db.siteSettings,
+    ...newSettings
+  };
+  saveDb();
+  return db.siteSettings;
+}
+
+export function updateUserRole(userId, newRole) {
+  const user = db.users.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.role = newRole === 'admin' ? 'admin' : 'user';
+  saveDb();
+  return user;
+}
+
+export function deleteUserByAdmin(userId) {
+  const userIndex = db.users.findIndex(u => u.id === userId);
+  if (userIndex === -1) return false;
+
+  // 1. Get user moment IDs before removing
+  const userMoments = db.moments.filter(m => m.user_id === userId);
+  const userMomentIds = new Set(userMoments.map(m => m.id));
+
+  // 2. Remove user and profile
+  db.users.splice(userIndex, 1);
+  db.profiles = db.profiles.filter(p => p.user_id !== userId);
+
+  // 3. Remove space memberships
+  db.memberships = db.memberships.filter(m => m.user_id !== userId);
+
+  // 4. Cascade remove user's moments and all assets attached to those moments
+  db.moments = db.moments.filter(m => m.user_id !== userId);
+  db.photos = db.photos.filter(p => !userMomentIds.has(p.moment_id));
+  db.songs = db.songs.filter(s => !userMomentIds.has(s.moment_id));
+  db.comments = db.comments.filter(c => c.user_id !== userId && !userMomentIds.has(c.moment_id));
+  db.reactions = db.reactions.filter(r => r.user_id !== userId && !userMomentIds.has(r.moment_id));
+
+  // 5. Reassign or default space creator if deleted user created any spaces
+  db.spaces.forEach(s => {
+    if (s.created_by === userId) {
+      const ownerMem = db.memberships.find(m => m.space_id === s.id && m.role === 'owner');
+      s.created_by = ownerMem ? ownerMem.user_id : 'u-admin';
+    }
+  });
+
+  saveDb();
+  return true;
+}
+
+export function getFullDatabaseExport() {
+  return {
+    exported_at: new Date().toISOString(),
+    users_count: db.users.length,
+    moments_count: db.moments.length,
+    spaces_count: db.spaces.length,
+    comments_count: db.comments.length,
+    siteSettings: db.siteSettings,
+    data: {
+      users: db.users.map(u => ({ id: u.id, email: u.email, full_name: u.full_name, role: u.role, created_at: u.created_at })),
+      profiles: db.profiles,
+      spaces: db.spaces,
+      memberships: db.memberships,
+      moments: db.moments,
+      comments: db.comments,
+      reactions: db.reactions
+    }
+  };
+}
+
+export function getAllMomentsForAdmin() {
+  return db.moments.map(m => {
+    const author = db.users.find(u => u.id === m.user_id);
+    const space = db.spaces.find(s => s.id === m.space_id);
+    return {
+      ...m,
+      author_name: author ? author.full_name : 'Unknown User',
+      author_email: author ? author.email : 'N/A',
+      space_name: space ? space.title : 'General'
+    };
+  });
+}
+
 
 // Helpers for Pagination
 export function paginate(items, page = 1, perPage = 10) {

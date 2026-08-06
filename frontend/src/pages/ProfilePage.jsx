@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useFetch } from '../hooks/useFetch.js';
 import { MomentCard } from '../components/MomentCard.jsx';
 import { ProfileSetupModal } from '../components/ProfileSetupModal.jsx';
-import { Edit2, Quote, MapPin, Calendar, Sparkles, Upload, AtSign, Instagram, UserCheck, Camera } from 'lucide-react';
+import { Edit2, Quote, MapPin, Calendar, Sparkles, Upload, AtSign, Instagram, UserCheck, Camera, Shield } from 'lucide-react';
 
 export const ProfilePage = () => {
   const { userId } = useParams();
@@ -157,9 +157,15 @@ export const ProfilePage = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-black text-blue-950">{user?.full_name}</h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200">
-                    Profile
-                  </span>
+                  {user?.role === 'admin' ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 text-xs font-black border border-amber-300 flex items-center gap-1 shadow-2xs">
+                      🛡️ System Administrator
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200">
+                      Member
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
                   <span className="font-mono text-blue-900 font-bold flex items-center gap-1">
@@ -222,13 +228,24 @@ export const ProfilePage = () => {
           </div>
 
           {isSelf && (
-            <button
-              onClick={() => setShowSetupModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold shadow-sm transition shrink-0"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Edit Profile Details</span>
-            </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs shadow-sm transition"
+                >
+                  <Shield className="w-3.5 h-3.5 fill-amber-950" />
+                  <span>Admin Control Panel</span>
+                </Link>
+              )}
+              <button
+                onClick={() => setShowSetupModal(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold shadow-sm transition"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Edit Profile Details</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -210,7 +210,10 @@ export const MomentModal = ({ isOpen, onClose, onMomentCreated, spaces = [], def
       setSongArtist('');
       setSpotifyUrl('');
 
-      if (onMomentCreated) onMomentCreated();
+      // Dispatch global event for instant reactivity across tree & feed components
+      window.dispatchEvent(new CustomEvent('moment_created', { detail: data }));
+
+      if (onMomentCreated) onMomentCreated(data.moment || data);
       onClose();
     } catch (err) {
       setError(err.message);

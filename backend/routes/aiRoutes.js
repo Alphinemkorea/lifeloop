@@ -105,4 +105,92 @@ Respond ONLY in JSON format matching this structure:
   }
 });
 
+router.post('/digest', authenticateToken, async (req, res) => {
+  try {
+    const { space_id, month, year } = req.body;
+
+    const momentsData = getMoments({
+      space_id: space_id || undefined,
+      user_id: !space_id ? req.user.id : undefined,
+      per_page: 50
+    });
+
+    const moments = momentsData?.data || [];
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey || moments.length === 0) {
+      // Return smart fallback digest
+      const moods = moments.map(m => m.mood);
+      const moodCounts = {};
+      moods.forEach(m => { moodCounts[m] = (moodCounts[m] || 0) + 1; });
+      const topMood = Object.keys(moodCounts).sort((a, b) => moodCounts[b] - moodCounts[a])[0] || 'Joyful';
+
+      return res.json({
+        month_label: month || "Monthly Recap",
+        total_moments: moments.length,
+        top_mood: topMood,
+        story_recap: moments.length > 0 
+          ? `In this period, you captured ${moments.length} memorable moments centered around feeling ${topMood}. From shared photos to special music, your memory scrapbook continues to grow warmer.`
+          : "No moments recorded for this period yet. Post your first memory to unlock monthly AI digests!",
+        emotional_themes: [topMood, "Gratitude", "Connection"],
+        top_highlights: moments.slice(0, 3).map(m => ({ title: m.title, mood: m.mood, date: m.date })),
+        ai_recommendation: "Keep adding weekly song picks and photos to enrich your memory tree photobooks!"
+      });
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+    });
+
+    const memorySummaries = moments.map((m, i) => 
+      `${i + 1}. "${m.title}" | Mood: ${m.mood} | Category: ${m.category} | Date: ${m.date} | Loc: ${m.location || 'N/A'}`
+    ).join('\n');
+
+    const prompt = `You are LifeLoop AI. Generate a Monthly Digest and Mood Analytics report based on these user scrapbook moments:
+
+${memorySummaries}
+
+Respond strictly in JSON matching this schema:
+{
+  "month_label": "${month || 'Monthly Recap'}",
+  "total_moments": ${moments.length},
+  "top_mood": "Single dominant mood word",
+  "story_recap": "A 3-4 sentence warm recap story of the month's highlights, emotional growth, and shared memories.",
+  "emotional_themes": ["Theme 1", "Theme 2", "Theme 3"],
+  "top_highlights": [
+    {"title": "Highlight 1 title", "mood": "mood", "date": "date"},
+    {"title": "Highlight 2 title", "mood": "mood", "date": "date"}
+  ],
+  "ai_recommendation": "A short 1-sentence friendly suggestion for next month's memory logging"
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: prompt,
+      config: { responseMimeType: 'application/json' }
+    });
+
+    let parsedJson;
+    try {
+      parsedJson = JSON.parse(response.text || '{}');
+    } catch (e) {
+      parsedJson = {
+        month_label: month || "Monthly Recap",
+        total_moments: moments.length,
+        top_mood: moments[0]?.mood || "Warm",
+        story_recap: response.text || "Your monthly recap is ready!",
+        emotional_themes: ["Connection", "Growth", "Happiness"],
+        top_highlights: moments.slice(0, 3).map(m => ({ title: m.title, mood: m.mood, date: m.date })),
+        ai_recommendation: "Log more moments with photos and songs!"
+      };
+    }
+
+    return res.json(parsedJson);
+  } catch (err) {
+    console.error("AI Digest Error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

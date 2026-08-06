@@ -39,7 +39,7 @@ export const MomentCard = ({ moment, onDelete, onUpdated }) => {
   const canDelete = user?.id === moment.user_id || user?.role === 'admin';
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between">
+    <div className="glass-card rounded-3xl p-5 transition space-y-4 flex flex-col justify-between">
       <div className="space-y-3">
         {/* Header: Author & Meta */}
         <div className="flex items-start justify-between gap-3">

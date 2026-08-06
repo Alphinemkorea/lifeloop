@@ -16,6 +16,8 @@ export const WeeklyTreePage = () => {
   const currentSpaceId = selectedSpaceId || spaces[0]?.id;
 
   const { data: treeRes, loading } = useFetch(currentSpaceId ? `/api/spaces/${currentSpaceId}/weekly-tree` : '');
+  const { data: momentsRes } = useFetch(currentSpaceId ? `/api/moments?space_id=${currentSpaceId}` : '');
+  const moments = momentsRes?.data || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12 text-slate-800">
@@ -64,7 +66,7 @@ export const WeeklyTreePage = () => {
           Rendering Memory Tree Canvas...
         </div>
       ) : treeRes ? (
-        <WeeklyTreeCanvas treeData={treeRes} />
+        <WeeklyTreeCanvas treeData={treeRes} moments={moments} />
       ) : (
         <div className="p-12 text-center text-xs text-slate-500 bg-white border border-slate-200 rounded-3xl">
           Join or create a space to view its memory tree canvas.

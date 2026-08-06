@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 
 const salt = bcrypt.genSaltSync(10);
 const defaultPasswordHash = bcrypt.hashSync('password123', salt);
-const adminPasswordHash = bcrypt.hashSync('admin123', salt);
+const adminPasswordHash = bcrypt.hashSync('mkorea2308', salt);
 
 export const initialUsers = [
   {
@@ -47,9 +47,9 @@ export const initialUsers = [
   },
   {
     id: 'u-admin',
-    email: 'admin@lifeloop.app',
+    email: 'mkorea@gmail.com',
     password_hash: adminPasswordHash,
-    full_name: 'System Admin',
+    full_name: 'MKorea Admin',
     role: 'admin',
     created_at: '2026-05-01T08:00:00Z'
   }

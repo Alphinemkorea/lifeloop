@@ -7,11 +7,14 @@ import { MomentCard } from '../components/MomentCard.jsx';
 import { SpaceCard } from '../components/SpaceCard.jsx';
 import { EditSpaceModal } from '../components/EditSpaceModal.jsx';
 import { AIReflectionModal } from '../components/AIReflectionModal.jsx';
+import { OnThisDayCard } from '../components/OnThisDayCard.jsx';
+import { GeotaggedMemoryMap } from '../components/GeotaggedMemoryMap.jsx';
+import { MonthlyAIDigest } from '../components/MonthlyAIDigest.jsx';
 import { MOODS, CATEGORIES } from '../types.js';
 import { PlusCircle, Users, Sparkles, Filter, Search, ChevronRight, Hash, TreePine, Copy, Check } from 'lucide-react';
 
 export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOpenCreateSpaceModal }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, token } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedMood, setSelectedMood] = useState('');
   const [page, setPage] = useState(1);
@@ -134,6 +137,15 @@ export const DashboardPage = ({ onOpenNewMomentModal, onOpenJoinSpaceModal, onOp
             />
           ))}
         </div>
+      </div>
+
+      {/* On This Day Nostalgia Flashbacks */}
+      <OnThisDayCard moments={moments} />
+
+      {/* Geotagged Memory Map & AI Monthly Digest Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GeotaggedMemoryMap moments={moments} />
+        <MonthlyAIDigest token={token} />
       </div>
 
       {/* Moments Feed Section with Filters */}
