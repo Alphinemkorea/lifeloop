@@ -29,22 +29,43 @@ app.use((req, res, next) => {
   next();
 });
 
-// REST API Endpoints (All API endpoints are under /api/*)
+// REST API Endpoints (Support both /api/ prefix and stripped routes on Vercel)
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/spaces', spaceRoutes);
+app.use('/spaces', spaceRoutes);
+
 app.use('/api/moments', momentRoutes);
+app.use('/moments', momentRoutes);
+
 app.use('/api/comments', commentRoutes);
+app.use('/comments', commentRoutes);
+
 app.use('/api/reactions', reactionRoutes);
+app.use('/reactions', reactionRoutes);
+
 app.use('/api/profiles', profileRoutes);
+app.use('/profiles', profileRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
+
 app.use('/api/search', searchRoutes);
+app.use('/search', searchRoutes);
+
 app.use('/api/ai', aiRoutes);
+app.use('/ai', aiRoutes);
 
 // Healthcheck endpoint
 const healthHandler = (req, res) => {
   res.json({ status: 'ok', service: 'LifeLoop API', timestamp: new Date().toISOString() });
 };
 app.get('/api/health', healthHandler);
+<<<<<<< HEAD
+=======
+app.get('/health', healthHandler);
+>>>>>>> oldrepo/main
 
 // Fallback for unmatched API requests to prevent serverless function hangs
 app.use('/api/*', (req, res) => {
