@@ -62,10 +62,6 @@ const healthHandler = (req, res) => {
   res.json({ status: 'ok', service: 'LifeLoop API', timestamp: new Date().toISOString() });
 };
 app.get('/api/health', healthHandler);
-<<<<<<< HEAD
-=======
-app.get('/health', healthHandler);
->>>>>>> oldrepo/main
 
 // Fallback for unmatched API requests to prevent serverless function hangs
 app.use('/api/*', (req, res) => {
